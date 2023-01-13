@@ -1,0 +1,4 @@
+# Options for the transmission-daemon version 4
+
+TRANSMISSION_HOME="/var/lib/transmission"
+OPTIONS="-e /var/log/transmission/transmission4.log -x /var/run/transmission4-daemon/transmission4-daemon.pid"

@@ -1,0 +1,11 @@
+/var/log/transmission/transmission4.log {
+    notifempty
+    missingok
+    create 644 transmission transmission
+    sharedscripts
+    copytruncate
+    postrotate
+        /bin/kill -HUP `cat /var/run/transmission4-daemon/transmission4-daemon.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+}
+

@@ -1,0 +1,19 @@
+[Unit]
+Description=The Transmission4 BitTorrent daemon
+Requires=nss-lookup.target
+After=network-online.target
+After=nss-lookup.target
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/transmission4-daemon
+PIDFile=/var/run/transmission4-daemon/transmission4-daemon.pid
+User=transmission
+Group=transmission
+ExecStart=/usr/local/bin/transmission-daemon $OPTIONS
+# Uncomment the following if you receive errors about pidfile not located
+# ExecStartPost=/bin/sh -c 'sleep 3; chmod 644 /var/run/transmission4-daemon/transmission4-daemon.pid'
+
+[Install]
+WantedBy=multi-user.target
+
