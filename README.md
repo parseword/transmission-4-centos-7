@@ -6,17 +6,17 @@ Files to support installation of the Transmission 4.0 beta client on CentOS 7.
 
 This directory contains:
 
-- An Ansible task to compile and install the Transmission 4.0 beta on CentOS 7
+- An Ansible task/playbook to compile and install the Transmission 4.0 beta on CentOS 7
 
 - A systemd unit file suitable for running the Transmission 4.0 daemon
 
-- logrotate, sysconfig, and tmpfiles.d configuration files for Transmission
+- logrotate, sysconfig, and tmpfiles.d configuration files for the Transmission 4.0 daemon
 
 ## The Ansible task
 
 The [transmission4-installation.yaml](transmission4-installation.yaml) 
-file is an Ansible task that will build and install the Transmission 4.0 beta from source on CentOS 7. Configuration 
-and usage are described below.
+file is an Ansible task that will build and install the Transmission 4.0 beta from source on CentOS 7. It can be included
+from your playbook, or run as its own independent playbook. Configuration and usage are described below.
 
 ### Configuring the Ansible task
 
@@ -47,7 +47,7 @@ release in the build directory. Transmission 4 requires libcurl features not ava
 openssl-devel, perl-XML-Parser, pkgconfig
 
 - Temporarily install (via yum) the Red Hat Developer Toolset 7.0. CentOS 7 has gcc-c++ version 4.8.5, which is not 
-sufficient to compile Transmission. The devtools-7 package will install gcc-c++ 7.3.1.
+sufficient to compile Transmission 4.0. The devtools-7 package provides gcc-c++ 7.3.1.
 
 - Download, compile, and install the specified Transmission version
 
@@ -76,14 +76,14 @@ directory will be removed. You can disable this by setting `do_cleanup` to false
 The Ansible task installs a systemd unit file, but it doesn't automatically start or enable the service. You'll need
 to do that yourself with `systemctl start transmission4-daemon` and `systemctl enable transmission4-daemon`.
 
-A settings.json file is *not* installed. If you have a settings.json file you want to use, place it into 
-/var/lib/transmission prior to starting the transmission4-daemon service. Otherwise, Transmission will create a default
+A `settings.json` file is *not* installed. If you have a `settings.json` file you want to use, place it into 
+`/var/lib/transmission` prior to starting the transmission4-daemon service. Otherwise, Transmission will create a default
 settings file the first time it runs.
 
 I only use the Transmission daemon and the web interface, so that's all I've tested. Building the Qt client is
 configured to "AUTO" by default, which I suppose will compile the GUI if you're running in a desktop environment. You'll
-at least end up with the CLI binaries: transmission-cli, transmission-create, transmission-daemon, transmission-edit,
-transmission-remote, transmission-show.
+at least end up with the CLI binaries: `transmission-cli`, `transmission-create`, `transmission-daemon`, `transmission-edit`,
+`transmission-remote`, and `transmission-show`.
 
 The Transmission 4.0 binaries will be installed to `/usr/local/bin`. If you already have Transmission 3.0 from
 the excellent [Geekery repository](http://geekery.altervista.org/dokuwiki/doku.php) -- which installs its binaries to
@@ -93,4 +93,4 @@ using a `transmission4` scheme to keep them separate from Transmission 3.0.
 
 ## Bugs
 
-If you encounter a problem with the Ansible task, please open a new issue in this repository.
+If you encounter a problem with the Ansible task, please [open a new issue](https://github.com/parseword/transmission-4-centos-7/issues/new) in this repository.
