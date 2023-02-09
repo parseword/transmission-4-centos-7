@@ -1,12 +1,12 @@
 ################################################################################
-# transmission4-installation.yaml: Install Transmission 4 beta on CentOS 7
+# transmission4-installation.yaml: Install Transmission 4 on CentOS 7
 #
 # Author: Shaun Cummiskey <shaun@shaunc.com> 2023-01-13
 # For more information or to obtain the latest version of this task, visit:
 # <https://github.com/parseword/transmission-4-centos-7/>
 ################################################################################
 #
-# This task will compile and install a Transmission 4 beta on a CentOS 7
+# This task will compile and install Transmission 4 on a CentOS 7
 # machine. Building Transmission 4 in this environment requires newer versions
 # of gcc and cURL than are shipped with yum. Suitable versions of both will be
 # automatically installed, and then automatically removed when building is done.
@@ -40,7 +40,7 @@
 #  tasks:
 
     ############################################################################
-    # General configuration                                            
+    # General configuration
     ############################################################################
 
     - name: Set the temporary build path
@@ -50,7 +50,7 @@
       ansible.builtin.set_fact:
         build_directory: '/tmp/transmission4/'
       when: build_directory is not defined
-      
+
     - name: Whether or not cleanup will be performed automatically
     # Once Transmission is built and installed successfully, all the temporary
     # build artifacts will be deleted, and the Red Hat Developer Toolset will be
@@ -58,24 +58,24 @@
       ansible.builtin.set_fact:
         do_cleanup: true
       when: do_cleanup is not defined
-  
+
     ############################################################################
-    # Transmission configuration                                            
+    # Transmission configuration
     ############################################################################
-  
+
     - name: Set the target transmission_version
     # This must _exactly_ match the name of a version listed at the project's
     # release site, <https://github.com/transmission/transmission/releases/>.
     # The distribution URL will be determined from the release page data.
       ansible.builtin.set_fact:
-        transmission_version: '4.0.0-beta.3'
+        transmission_version: '4.0.0'
       when: transmission_version is not defined
-  
+
     - name: Set the expected sha256 hash for the transmission distribution file
       ansible.builtin.set_fact:
-        transmission_sha256: 'c54b1f7962268995c829a97df801161853582e84eeb608da644258cf0055d5e3'
+        transmission_sha256: 'af4f023c0b3f2417f62b314d84ea7f329ca080f86664f24b44246a8c50c6b10a'
       when: transmission_sha256 is not defined
-      
+
     - name: Set default transmission_configure_options
       ansible.builtin.set_fact:
         transmission_configure_options: >-
@@ -86,19 +86,19 @@
           -DCURL_LIBRARIES={{ build_directory }}/curllibs/libcurl.so
           -DENABLE_CLI=ON
       when: transmission_configure_options is not defined
-      
+
     ############################################################################
-    # cURL configuration                                                        
+    # cURL configuration
     ############################################################################
-      
+
     - name: Set the minimum required cURL version
     # Transmission requires certain features of libcurl only available in cURL
     # version 7.77.0 or newer, e.g. CURLOPT_PROXY_CAINFO. If a satisfactory
-    # cURL version is not already on the system, the latest version will be 
+    # cURL version is not already on the system, the latest version will be
     # temporarily installed into the build directory.
       ansible.builtin.set_fact:
         curl_minimum_version: '7.77.0'
-  
+
     - name: Set default curl_configure_options
       ansible.builtin.set_fact:
         curl_configure_options: >-
@@ -107,11 +107,11 @@
           --prefix='{{ build_directory }}/curlbin'
           --with-openssl
       when: curl_configure_options is not defined
-      
+
     ############################################################################
-    # Determine whether or not Transmission needs to be installed or updated    
+    # Determine whether or not Transmission needs to be installed or updated
     ############################################################################
-    
+
     - name: Get currently installed transmission-daemon version, if any
       ansible.builtin.shell:
         cmd: 'command -v /usr/local/bin/transmission-daemon >/dev/null && /usr/local/bin/transmission-daemon -V 2>&1 | cut -f2 -d" "'
@@ -119,29 +119,29 @@
       changed_when: false
       failed_when: false
       register: installed_transmission_version
-  
+
     - name: Determine whether a satisfactory transmission-daemon already exists
       set_fact:
         transmission_needs_installed: true
-      when: installed_transmission_version.stdout is not defined 
+      when: installed_transmission_version.stdout is not defined
             or installed_transmission_version.stdout | length == 0
             or installed_transmission_version.stdout is version_compare(transmission_version, '<')
             or force_transmission_install is defined
-            
+
     ############################################################################
-    # Install or update Transmission                                            
+    # Install or update Transmission
     ############################################################################
-    
+
     - when: transmission_needs_installed is true
       block:
-    
+
         - name: Ensure the temporary build directory exists
           ansible.builtin.file:
             path: '{{ build_directory }}'
             state: directory
             owner: root
             mode: '0700'
-    
+
         - name: Get currently installed cURL version, if any
           ansible.builtin.shell:
             cmd: "curl -V | head -1 | cut -f2 -d' '"
@@ -149,12 +149,12 @@
           changed_when: false
           failed_when: false
           register: installed_curl_version
-                
+
         - name: Determine whether a temporary local cURL has already been built
           ansible.builtin.stat:
             path: '{{ build_directory }}/curllibs/libcurl.so'
           register: curl_temp_lib
-      
+
         - name: Determine whether a satisfactory cURL version already exists
           set_fact:
             curl_needs_installed: true
@@ -162,28 +162,28 @@
                 or installed_curl_version.stdout is version(curl_minimum_version, '<'))
                 and not curl_temp_lib.stat.exists)
                 or force_curl_install is defined
-                
+
         - when: curl_needs_installed is true
           block:
-            
+
             ####################################################################
-            # Install a temporary copy of cURL into the local build directory   
+            # Install a temporary copy of cURL into the local build directory
             ####################################################################
-            
+
             - name: Download the latest cURL distribution
               ansible.builtin.get_url:
                 url: "{{ lookup('url', 'https://api.github.com/repos/curl/curl/releases/latest', split_lines=false) | regex_search('browser_download_url.*(https://(.*?).tar.gz)', '\\1') | first }}"
                 dest: '{{ build_directory }}/curl-latest.tar.gz'
                 owner: root
                 group: root
-                
+
             - name: Ensure the temporary build directory exists
               ansible.builtin.file:
                 path: '{{ build_directory }}/curl-latest'
                 state: directory
                 owner: root
                 mode: '0700'
-              
+
             - name: Extract the cURL distribution
               ansible.builtin.unarchive:
                 src: '{{ build_directory }}/curl-latest.tar.gz'
@@ -195,21 +195,21 @@
                 group: root
               args:
                 creates: '{{ build_directory }}/curl-latest/README'
-                
+
             - name: Configure cURL
               ansible.builtin.shell:
                 cmd: './configure {{ curl_configure_options }} > curl-configure.out 2> curl-configure.err'
                 chdir: '{{ build_directory }}/curl-latest'
-              
+
             - name: Compile and install cURL
               ansible.builtin.shell:
                 cmd: 'make > curl-make.out 2> curl-make.err && make install'
                 chdir: '{{ build_directory }}/curl-latest'
-                
+
             ####################################################################
-            # End of cURL installation block                                    
+            # End of cURL installation block
             ####################################################################
-      
+
         - name: Install prerequisites for building Transmission
           yum:
             name:
@@ -223,7 +223,7 @@
               - perl-XML-Parser
               - pkgconfig
             state: latest
-            
+
         - name: Install the Red Hat Developer Toolset 7.0
         # CentOS 7 has gcc-c++ version 4.8.5. We need something newer to build
         # Transmission. The devtools-7 package will install gcc-c++ 7.3.1.
@@ -234,17 +234,17 @@
               - 'devtoolset-7-gcc-c++'
             state: latest
           register: devtoolset_install
-            
+
         - name: If we installed devtoolset, drop a flag to remove it later
           ansible.builtin.file:
             path: '{{ build_directory }}/.ansible_flag_do_devtoolset_cleanup'
             state: touch
           when: do_cleanup is true and devtoolset_install.results is search('Complete!')
-          
+
         - name: Get the download URL for the desired Transmission distribution
           set_fact:
             transmission_url: "https://github.com{{ lookup('url', 'https://github.com/transmission/transmission/releases/expanded_assets/{{ transmission_version }}', split_lines=false) | regex_search('href=\"(.*?).tar.xz\"', '\\1') | first }}.tar.xz"
-      
+
         - name: Download the Transmission distribution and verify checksum
           ansible.builtin.get_url:
             url: '{{ transmission_url }}'
@@ -252,7 +252,7 @@
             checksum: 'sha256:{{ transmission_sha256 }}'
             owner: root
             group: root
-      
+
         - name: Extract the Transmission distribution
           ansible.builtin.unarchive:
             src: '{{ build_directory }}/{{ transmission_url | split("/") | last }}'
@@ -262,35 +262,35 @@
             group: root
           args:
             creates: "{{ build_directory }}/{{ transmission_url | split('/') | last | replace('.tar.xz', '') }}"
-            
+
         - name: Create a build directory within the Transmission source tree
           ansible.builtin.file:
             path: "{{ build_directory }}/{{ transmission_url | split('/') | last | replace('.tar.xz', '') }}/build"
             state: directory
-            
+
         - name: Configure Transmission
           ansible.builtin.shell:
             cmd: 'cmake3 {{ transmission_configure_options }} .. > transmission-configure.out 2> transmission-configure.err'
             chdir: "{{ build_directory }}/{{ transmission_url | split('/') | last | replace('.tar.xz', '') }}/build"
-          environment: 
+          environment:
             PKG_CONFIG_PATH: '/usr/lib64/pkgconfig'
-          
+
         - name: Compile and install Transmission
           ansible.builtin.shell:
             cmd: 'make > transmission-make.out 2> transmission-make.err && make install'
             chdir: "{{ build_directory }}/{{ transmission_url | split('/') | last | replace('.tar.xz', '') }}/build"
-            
+
         - name: Drop a flag to indicate we succeeded
           ansible.builtin.file:
             path: '{{ build_directory }}/.ansible_flag_transmission_installed'
             state: touch
-            
+
         ########################################################################
-        # End of Transmission installation block                                
+        # End of Transmission installation block
         ########################################################################
-          
+
     ############################################################################
-    # Ensure the Transmission environment is sane                               
+    # Ensure the Transmission environment is sane
     ############################################################################
 
     - name: See if the transmission group already exists
@@ -299,13 +299,13 @@
         key: transmission
       failed_when: false
       register: transmission_group_exists
-        
+
     - name: Add a 'transmission' group if necessary
       ansible.builtin.group:
         name: transmission
         state: present
       when: transmission_group_exists.ansible_facts.getent_group.transmission is not defined
-      
+
     - name: See if the transmission user already exists
       ansible.builtin.getent:
         database: passwd
@@ -322,7 +322,7 @@
         group: transmission
         system: true
       when: transmission_user_exists.ansible_facts.getent_passwd.transmission is not defined
-        
+
     - name: Set up /var/lib/transmission if necessary
       ansible.builtin.file:
         path: /var/lib/transmission
@@ -333,7 +333,7 @@
         serole: object_r
         setype: var_lib_t
         mode: '0755'
-        
+
     - name: Set up /var/log/transmission if necessary
       ansible.builtin.file:
         path: /var/log/transmission
@@ -344,7 +344,7 @@
         serole: object_r
         setype: var_log_t
         mode: '0755'
-        
+
     - name: Install various system files if necessary (noclobber)
       ansible.builtin.get_url:
         url: '{{ item.url }}'
@@ -362,42 +362,42 @@
         - { url: 'https://raw.githubusercontent.com/parseword/transmission-4-centos-7/main/etc-tmpfiles.d-transmission4-daemon.conf', dest: '/etc/tmpfiles.d/transmission4-daemon.conf', setype: 'etc_t'  }
         - { url: 'https://raw.githubusercontent.com/parseword/transmission-4-centos-7/main/transmission4-daemon.service',             dest: '/etc/systemd/system/',                      setype: 'systemd_unit_file_t' }
       register: sysfiles_status
-    
+
     - name: If system files were installed, reload systemd
       ansible.builtin.systemd:
         daemon_reload: yes
       when: sysfiles_status.changed is true
-      
+
     - name: If system files were installed, generate the pidfile directory
       ansible.builtin.command:
         cmd: 'systemd-tmpfiles --create transmission4-daemon.conf'
       when: sysfiles_status.changed is true
-  
+
     ############################################################################
-    # Perform cleanup tasks                                                     
+    # Perform cleanup tasks
     ############################################################################
     - when: do_cleanup is true
       block:
-        
+
         - name: See whether installation succeeded (only do cleanup on success)
           ansible.builtin.stat:
             path: '{{ build_directory }}/.ansible_flag_transmission_installed'
           register: transmission_installed
-            
+
         - when: transmission_installed.stat.exists
           block:
-          
+
             - name: See whether we need to remove devtoolset-7
               ansible.builtin.stat:
                 path: '{{ build_directory }}/.ansible_flag_do_devtoolset_cleanup'
               register: do_cleanup_devtoolset
-                
+
             - name: Remove devtoolset-7 if we installed it
               ansible.builtin.yum:
                 name: 'devtoolset-7-*'
                 state: absent
               when: do_cleanup_devtoolset.stat.exists
-              
+
             - name: Nuke the temporary build tree
               ansible.builtin.file:
                 path: '{{ build_directory }}'
