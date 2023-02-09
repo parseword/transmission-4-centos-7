@@ -1,12 +1,12 @@
 # transmission-4-centos-7
 
-Files to support installation of the Transmission 4.0 beta client on CentOS 7.
+Files to support installation of the Transmission 4.0 client on CentOS 7.
 
 ## Repository contents
 
 This directory contains:
 
-- An Ansible task/playbook to compile and install the Transmission 4.0 beta on CentOS 7
+- An Ansible task/playbook to compile and install Transmission 4.0 on CentOS 7
 
 - A systemd unit file suitable for running the Transmission 4.0 daemon
 
@@ -15,7 +15,7 @@ This directory contains:
 ## The Ansible task
 
 The [transmission4-installation.yaml](transmission4-installation.yaml) 
-file is an Ansible task that will build and install the Transmission 4.0 beta from source on CentOS 7. It can be included
+file is an Ansible task that will build and install Transmission 4.0 from source on CentOS 7. It can be included
 from your playbook, or run as its own independent playbook. Configuration and usage are described below.
 
 ### Configuring the Ansible task
@@ -26,7 +26,7 @@ define any of the following variables there to override the task defaults:
 
 - `build_directory` - a temporary directory for downloading and compiling files
 - `do_cleanup` - whether or not to automatically delete build artifacts after successful installation
-- `transmission_version` - the target transmission version e.g. '4.0.0-beta.3'
+- `transmission_version` - the target transmission version e.g. '4.0.0'
 - `trasmission_sha256` - sha256 of the .tar.xz distribution of the target transmission version
 - `transmission_configure_options` - CMake3 options for configuring Transmission
 - `curl_configure_options` - configure options for cURL
