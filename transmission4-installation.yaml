@@ -1,7 +1,7 @@
 ################################################################################
 # transmission4-installation.yaml: Install Transmission 4 on CentOS 7
 #
-# Author: Shaun Cummiskey <shaun@shaunc.com> 2023-01-13
+# Author: Shaun Cummiskey <shaun@shaunc.com> 2023-03-15
 # For more information or to obtain the latest version of this task, visit:
 # <https://github.com/parseword/transmission-4-centos-7/>
 ################################################################################
@@ -68,12 +68,12 @@
     # release site, <https://github.com/transmission/transmission/releases/>.
     # The distribution URL will be determined from the release page data.
       ansible.builtin.set_fact:
-        transmission_version: '4.0.1'
+        transmission_version: '4.0.2'
       when: transmission_version is not defined
 
     - name: Set the expected sha256 hash for the transmission distribution file
       ansible.builtin.set_fact:
-        transmission_sha256: '8fc5aef23638c983406f6a3ee9918369e4cdc84e3228bd2fb3d01dd55cdad900'
+        transmission_sha256: '39bf7a104a722805a9dc089cdaaffe33bf90b82230a7ea7f340cae59f00a2ee8'
       when: transmission_sha256 is not defined
 
     - name: Set default transmission_configure_options
