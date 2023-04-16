@@ -68,12 +68,12 @@
     # release site, <https://github.com/transmission/transmission/releases/>.
     # The distribution URL will be determined from the release page data.
       ansible.builtin.set_fact:
-        transmission_version: '4.0.2'
+        transmission_version: '4.0.3'
       when: transmission_version is not defined
 
     - name: Set the expected sha256 hash for the transmission distribution file
       ansible.builtin.set_fact:
-        transmission_sha256: '39bf7a104a722805a9dc089cdaaffe33bf90b82230a7ea7f340cae59f00a2ee8'
+        transmission_sha256: 'b6b01fd58e42bb14f7aba0253db932ced050fcd2bba5d9f8469d77ddd8ad545a'
       when: transmission_sha256 is not defined
 
     - name: Set default transmission_configure_options
